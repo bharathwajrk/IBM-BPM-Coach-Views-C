@@ -1,0 +1,131 @@
+Radio Button Custom
+
+Layout Tab:
+1. Drag and drop a Custom HTML under Advance section, and selection Text under Implementation
+
+Layout:
+ Custom HTML
+<div class="customRadioContent">
+	<div class="customRadio">
+	</div>
+</div>
+
+Variables:
+Binding – data(String)
+Config Options – selectionList (NameValuePair) (List)
+
+Behavior Tab:
+1. Under Inline Javascript, paste the below code
+
+Inline Javascript:
+var divContent = this.context.element.querySelector(".customRadio");
+var data = this.context.binding;
+var visibility = this.context.options._metadata.visibility.get("value");
+var span = this.context.element.querySelector("div.customRadioContent");
+
+
+on(divContent,"click", function(event){
+    //Remove checked attribute
+    if(visibility != "READONLY" && visibility != "NONE" && visibility != "HIDDEN"){
+    var isDivElement = domAttr.get(event.target,"class");
+    var inputDisabled = domAttr.get(event.target, "disabled");
+    if(!inputDisabled && isDivElement != "customRadio"){
+    query("input:checked",divContent).forEach(function(tgt){
+    dojo.removeAttr(tgt,"checked");
+    });
+    //Add checked attribute
+    domAttr.set(event.target, "checked", ""); 
+    query("input:checked",divContent).forEach(function(evt){
+    //console.log(evt)
+    //Set Value to binding variable
+    var newValue = domAttr.get(evt,"value");
+    data.set("value", newValue);
+    //console.log(data.get("value"))
+    span.style.border = "";
+    //Remove the Section background color after fixing the validation error
+    var headingSection = dojo.query(".customRadio").parents(".Section")[0];
+    query(".panel-heading",headingSection).forEach(function(et){
+            domClass.remove(et,"panel-heading-error-bp3-border");
+            domClass.remove(et,"panel-heading-error-bp3");
+        });
+    });
+   }
+  }
+});
+
+//Prevent Double Click
+on(divContent,"dblclick", function(event){
+event.preventDefault();
+ });
+
+2. Under View, paste the below code
+
+View:
+var divContent = this.context.element.querySelector(".customRadio");
+var selectionList = this.context.options.selectionList ? this.context.options.selectionList.get("value") : null;
+var data = this.context.binding ? this.context.binding.get("value") : null;
+var innerHTML = "";
+var coachValidationDiv = "<div class='coachValidationDiv'><img class='coachValidationImg CoachView_hidden' role='alert'/><span class='coachValidationRadioCust' style='visibility: hidden;'>!</span></div>";
+if(selectionList != null)
+{
+    for(var i=0; i<selectionList.items.length; i++)
+    {
+        var name = selectionList.items[i].name;
+        var value = selectionList.items[i].value == "true" ? "" : "disabled";
+        var checked = "";
+        if(data != null && data == name){
+        checked = "checked";        
+        }        
+        var input = "<input type='radio' name='customRadio' value='"+name+"' "+value+" "+checked+" >&nbsp;&nbsp;"+name+"<br>";
+        innerHTML += input;
+    }
+}
+divContent.innerHTML = innerHTML;// + coachValidationDiv;
+
+var visibility = this.context.options._metadata.visibility.get("value");
+//If Visibility is READONLY make whole div element Disabled
+if(visibility == "READONLY"){
+divContent.style.cursor = "not-allowed";
+query('input',divContent).forEach(function(inputElem){
+    inputElem.disabled = 'disabled';
+    inputElem.style.cursor = "not-allowed";
+    });
+}
+//If Visibility is NONE or HIDDEN make whole div element HIDDEN
+if(visibility == "NONE" || visibility == "HIDDEN"){
+    divContent.style.display = "NONE";
+}
+
+3. Under Validate, paste the below code
+
+var span = this.context.element.querySelector("div.customRadioContent");
+//Gets the Parent Section for scrollIntoView if any error
+
+if (this.validateTooltip != undefined) {
+  this.validateTooltip.destroyRecursive();
+  delete this.validateTooltip;
+}
+if (event.type == "error") {
+  for (var i=0; i<event.errors.length; i++) {
+    var error = event.errors[i];
+    if (error.view_dom_ids[0] == this.context.element.id) {
+      span.style.border = "1px solid red";
+            //wnDow.scrollIntoView(headingSection);
+      this.validateTooltip = new Tooltip({
+        connectId: span,
+        label: error.message,
+        position: ["above", "below", "before", "after"]
+      });
+      this.validateTooltip.onShow = function(){
+        domClass.add(Tooltip._masterTT.domNode, "coachValidationTooltip");
+      };
+    }
+  }
+}
+else
+  {
+  span.style.border = "";
+  };
+
+
+
